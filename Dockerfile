@@ -20,13 +20,11 @@ RUN make install
 
 
 # Stage 2: Create the final, minimal image for execution
-FROM debian:bullseye-slim
+# USE THE FULL DEBIAN IMAGE instead of slim to avoid potential DNS/network issues.
+FROM debian:bullseye
 
 # 1. Install only necessary runtime dependencies (ca-certificates is good practice)
-RUN apt-get update && apt-get install -y ca-certificates dnsutils && rm -rf /var/lib/apt/lists/*
-
-# Run a diagnostic command to check DNS resolution
-RUN nslookup httpbin.org || true
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # 2. Copy the compiled binary and default config from the builder stage
 COPY --from=builder /usr/local/bin/tinyproxy /usr/local/bin/tinyproxy
@@ -43,9 +41,6 @@ RUN mkdir -p /var/run/tinyproxy /var/log/tinyproxy && \
 
 # 5. Expose the default proxy port
 EXPOSE 8888
-
-# Set a public DNS server to prevent resolution errors in some environments
-RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 # 6. Switch to the non-root user
 USER tinyproxy
