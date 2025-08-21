@@ -23,7 +23,10 @@ RUN make install
 FROM debian:bullseye-slim
 
 # 1. Install only necessary runtime dependencies (ca-certificates is good practice)
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ca-certificates dnsutils && rm -rf /var/lib/apt/lists/*
+
+# Run a diagnostic command to check DNS resolution
+RUN nslookup httpbin.org || true
 
 # 2. Copy the compiled binary and default config from the builder stage
 COPY --from=builder /usr/local/bin/tinyproxy /usr/local/bin/tinyproxy
