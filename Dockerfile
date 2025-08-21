@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/
 
 # 2. Copy the compiled binary and default config from the builder stage
 COPY --from=builder /usr/local/bin/tinyproxy /usr/local/bin/tinyproxy
-COPY --from=builder /etc/tinyproxy.conf /etc/tinyproxy/tinyproxy.conf
+COPY --from=builder /etc/tinyproxy/tinyproxy.conf /etc/tinyproxy/tinyproxy.conf
 
 # 3. Create a non-root user and group to run the application for security
 RUN groupadd --system tinyproxy && \
@@ -41,10 +41,13 @@ RUN mkdir -p /var/run/tinyproxy /var/log/tinyproxy && \
 # 5. Expose the default proxy port
 EXPOSE 8888
 
+# Set a public DNS server to prevent resolution errors in some environments
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf
+
 # 6. Switch to the non-root user
 USER tinyproxy
 
 # 7. Set the default command to run tinyproxy in the foreground
 #    -d: Do not daemonize (essential for containers)
 #    -c: Specify the configuration file
-CMD ["/usr/local/bin/tinyproxy", "-d", "-c", "/etc/tinyproxy.conf"]
+CMD ["/usr/local/bin/tinyproxy", "-d", "-c", "/etc/tinyproxy/tinyproxy.conf"]
